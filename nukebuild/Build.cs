@@ -227,21 +227,6 @@ partial class Build : NukeBuild
         }
     }
 
-    Target RunHtmlPreviewerTests => _ => _
-        .DependsOn(CompileHtmlPreviewer)
-        .OnlyWhenStatic(() => !(Parameters.SkipPreviewer || Parameters.SkipTests))
-        .Executes(() =>
-        {
-            var webappTestDir = RootDirectory / "tests" / "Avalonia.DesignerSupport.Tests" / "Remote" / "HtmlTransport" / "webapp";
-
-            NpmTasks.NpmInstall(c => c
-                .SetProcessWorkingDirectory(webappTestDir)
-                .SetProcessArgumentConfigurator(a => a.Add("--silent")));
-            NpmTasks.NpmRun(c => c
-                .SetProcessWorkingDirectory(webappTestDir)
-                .SetCommand("test"));
-        });
-
     Target RunCoreLibsTests => _ => _
         .OnlyWhenStatic(() => !Parameters.SkipTests)
         .DependsOn(Compile)
@@ -275,8 +260,6 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             RunCoreTest("Avalonia.Generators.Tests");
-            if (Parameters.IsRunningOnWindows)
-                RunCoreTest("Avalonia.DesignerSupport.Tests");
         });
 
     Target RunLeakTests => _ => _
@@ -348,7 +331,6 @@ partial class Build : NukeBuild
         .DependsOn(RunCoreLibsTests)
         .DependsOn(RunRenderTests)
         .DependsOn(RunToolsTests)
-        .DependsOn(RunHtmlPreviewerTests)
         .DependsOn(RunLeakTests);
 
     Target Package => _ => _
