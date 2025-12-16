@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(AvsCurrentTargetFramework);$(AvsLegacyTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(AvsCurrentTargetFramework);</TargetFrameworks>
     <RootNamespace>Avalonia</RootNamespace>
     <DefineConstants>$(DefineConstants);DATAGRID_INTERNAL</DefineConstants>
   </PropertyGroup>
