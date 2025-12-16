@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Avalonia.Input;
 using Avalonia.Input.Raw;
 using static Avalonia.X11.XLib;
@@ -11,13 +12,18 @@ namespace Avalonia.X11
     {
         private static readonly XiEventType[] DefaultEventTypes = new XiEventType[]
         {
-            XiEventType.XI_Motion, XiEventType.XI_ButtonPress, XiEventType.XI_ButtonRelease, XiEventType.XI_Leave,
+            XiEventType.XI_Motion,
+            XiEventType.XI_ButtonPress,
+            XiEventType.XI_ButtonRelease,
+            XiEventType.XI_Leave,
             XiEventType.XI_Enter,
         };
 
         private static readonly XiEventType[] MultiTouchEventTypes = new XiEventType[]
         {
-            XiEventType.XI_TouchBegin, XiEventType.XI_TouchUpdate, XiEventType.XI_TouchEnd
+            XiEventType.XI_TouchBegin,
+            XiEventType.XI_TouchUpdate,
+            XiEventType.XI_TouchEnd
         };
 
         private X11Info _x11;
@@ -36,7 +42,7 @@ namespace Avalonia.X11
                 UpdateCore(info.Classes, info.NumClasses);
             }
 
-            public virtual void Update(XIAnyClassInfo** classes, int num)
+            public virtual void Update(XIAnyClassInfo** classes, int num, int? slaveId)
             {
                 UpdateCore(classes, num);
             }
@@ -69,6 +75,9 @@ namespace Avalonia.X11
 
         private class PointerDeviceInfo : DeviceInfo
         {
+            private string? _currentSlaveName = null;
+            private bool _currentSlaveIsEraser = false;
+            
             public PointerDeviceInfo(XIDeviceInfo info, X11Info x11Info) : base(info)
             {
                 _x11 = x11Info;
@@ -120,16 +129,40 @@ namespace Avalonia.X11
                 }
             }
 
-            public override void Update(XIAnyClassInfo** classes, int num)
+            public override void Update(XIAnyClassInfo** classes, int num, int? slaveId)
             {
-                base.Update(classes, num);
+                base.Update(classes, num, slaveId);
+
+                if (slaveId != null)
+                {
+                    _currentSlaveName = null;
+                    _currentSlaveIsEraser = false;
+                    var devices = (XIDeviceInfo*)XIQueryDevice(_x11.Display,
+                        (int)XiPredefinedDeviceId.XIAllDevices, out int deviceNum);
+
+                    for (var c = 0; c < deviceNum; c++)
+                    {
+                        if (devices[c].Deviceid == slaveId)
+                        {
+                            _currentSlaveName = Marshal.PtrToStringAnsi(devices[c].Name);
+                            _currentSlaveIsEraser =
+                                _currentSlaveName?.IndexOf("eraser", StringComparison.OrdinalIgnoreCase) >= 0;
+                            break;
+                        }
+                    }
+                    XIFreeDeviceInfo(devices);
+                }
+                
                 UpdateKnownValuator();
             }
 
-            public bool HasPenEvaluators()
+            public bool HasPressureValuator()
             {
                 return PressureXIValuatorClassInfo is not null;
             }
+
+            public bool IsEraser => _currentSlaveIsEraser;
+            public string? Name => _currentSlaveName;
 
             public bool HasScroll(ParsedDeviceEvent ev)
             {
@@ -239,7 +272,7 @@ namespace Avalonia.X11
             if (xev->evtype == XiEventType.XI_DeviceChanged)
             {
                 var changed = (XIDeviceChangedEvent*)xev;
-                _pointerDevice.Update(changed->Classes, changed->NumClasses);
+                _pointerDevice.Update(changed->Classes, changed->NumClasses, changed->Reason == XiDeviceChangeReason.XISlaveSwitch ? changed->Sourceid : null);
             }
 
             if ((xev->evtype >= XiEventType.XI_ButtonPress && xev->evtype <= XiEventType.XI_Motion)
@@ -365,11 +398,15 @@ namespace Avalonia.X11
             if (!client.IsEnabled || (_multitouch && ev.Emulated))
                 return;
 
+            var eventModifiers = ev.Modifiers;
+            if (_pointerDevice.IsEraser)
+                eventModifiers |= RawInputModifiers.PenEraser;
+            
             if (ev.Type == XiEventType.XI_Motion)
             {
                 Vector scrollDelta = default;
                 var rawPointerPoint = new RawPointerPoint() { Position = ev.Position };
-                IInputDevice device = _pointerDevice.HasPenEvaluators() ? client.PenDevice : client.MouseDevice;
+                IInputDevice device = _pointerDevice.HasPressureValuator() ? client.PenDevice : client.MouseDevice;
 
                 foreach (var v in ev.Valuators)
                 {
@@ -395,10 +432,10 @@ namespace Avalonia.X11
 
                 if (scrollDelta != default)
                     client.ScheduleXI2Input(new RawMouseWheelEventArgs(device, ev.Timestamp,
-                        client.InputRoot, ev.Position, scrollDelta, ev.Modifiers));
+                        client.InputRoot, ev.Position, scrollDelta, eventModifiers));
                 if (_pointerDevice.HasMotion(ev))
                     client.ScheduleXI2Input(new RawPointerEventArgs(device, ev.Timestamp, client.InputRoot,
-                        RawPointerEventType.Move, rawPointerPoint, ev.Modifiers));
+                        RawPointerEventType.Move, rawPointerPoint, eventModifiers));
             }
 
             if (ev.Type == XiEventType.XI_ButtonPress && ev.Button >= 4 && ev.Button <= 7 && !ev.Emulated)
@@ -414,7 +451,7 @@ namespace Avalonia.X11
                 
                 if (scrollDelta.HasValue)
                     client.ScheduleXI2Input(new RawMouseWheelEventArgs(client.MouseDevice, ev.Timestamp,
-                        client.InputRoot, ev.Position, scrollDelta.Value, ev.Modifiers));
+                        client.InputRoot, ev.Position, scrollDelta.Value, eventModifiers));
             }
 
             if (ev.Type == XiEventType.XI_ButtonPress || ev.Type == XiEventType.XI_ButtonRelease)
@@ -432,13 +469,13 @@ namespace Avalonia.X11
 
                 if (type.HasValue)
                 {
-                    IInputDevice device = _pointerDevice.HasPenEvaluators() ? client.PenDevice : client.MouseDevice;
+                    IInputDevice device = _pointerDevice.HasPressureValuator() ? client.PenDevice : client.MouseDevice;
                     var pointerPoint = new RawPointerPoint() { Position = ev.Position };
 
                     SetPenSpecificValues(ev, ref pointerPoint);
 
                     client.ScheduleXI2Input(new RawPointerEventArgs(device, ev.Timestamp, client.InputRoot,
-                        type.Value, pointerPoint, ev.Modifiers));
+                        type.Value, pointerPoint, eventModifiers));
                 }
             }
 
