@@ -62,7 +62,7 @@ jobs:
   variables:
     SolutionDir: '$(Build.SourcesDirectory)'
   pool:
-    vmImage: 'macos-13'
+    vmImage: 'macos-15'
   steps:
   - task: UseDotNet@2
     displayName: 'Use .NET 6.0 Runtime'
