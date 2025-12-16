@@ -29,7 +29,8 @@ namespace Avalonia.Controls.Chrome
             {
                 var height = Math.Max(0, window.WindowDecorationMargin.Top);
                 Height = height;
-                _captionButtons?.Height = window.SystemDecorations == SystemDecorations.Full ? height : 0;
+                if(_captionButtons != null)
+                    _captionButtons.Height = window.SystemDecorations == SystemDecorations.Full ? height : 0;
             }
             else
             {
@@ -39,7 +40,8 @@ namespace Avalonia.Controls.Chrome
                 // Disable it for now.
                 // TODO: restore that behavior so that it works in all cases
                 Height = 0;
-                _captionButtons?.Height = 0;
+                if(_captionButtons != null)
+                    _captionButtons.Height = 0;
             }
 
             IsVisible = window.PlatformImpl?.NeedsManagedDecorations ?? false;
