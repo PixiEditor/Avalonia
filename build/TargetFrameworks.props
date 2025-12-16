@@ -11,8 +11,8 @@
     <AvsCurrentTizenTargetSdk>8.0.155</AvsCurrentTizenTargetSdk>
   </PropertyGroup>
   <PropertyGroup Condition="'$(AvsSkipBuildingLegacyTargetFrameworks)' != 'True'">
-    <AvsLegacyTargetFrameworks>net6.0</AvsLegacyTargetFrameworks>
-    <AvsLegacyWindowsTargetFrameworks>net6.0-windows</AvsLegacyWindowsTargetFrameworks>
+    <AvsLegacyTargetFrameworks>net8.0</AvsLegacyTargetFrameworks>
+    <AvsLegacyWindowsTargetFrameworks>net8.0-windows</AvsLegacyWindowsTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

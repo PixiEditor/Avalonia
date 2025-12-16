@@ -1202,6 +1202,7 @@ namespace Avalonia.Win32
 
                 // On Windows 11 21H2 and later, corners are configurable.
                 // When doing so, we need to make sure that DWM draws the non-client frame for that to work correctly.
+
                 if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)) {
                     SetWindowCornerPreference(DwmWindowCornerPreference.DWMWCP_ROUND);
                     SetNCRenderingPolicy(DwmNCRenderingPolicy.DWMNCRP_ENABLED);
