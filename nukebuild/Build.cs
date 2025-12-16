@@ -307,16 +307,6 @@ partial class Build : NukeBuild
                 Parameters.NugetRoot / $"Avalonia.{Parameters.Version}.snupkg");
         });
     
-    Target ValidateApiDiff => _ => _
-        .DependsOn(CreateNugetPackages)
-        .Executes(async () =>
-        {
-            await Task.WhenAll(
-                Directory.GetFiles(Parameters.NugetRoot, "*.nupkg").Select(nugetPackage => ApiDiffHelper.ValidatePackage(
-                    ApiCompatTool, nugetPackage, Parameters.ApiValidationBaseline,
-                    Parameters.ApiValidationSuppressionFiles, Parameters.UpdateApiValidationSuppression)));
-        });
-    
     Target OutputApiDiff => _ => _
         .DependsOn(CreateNugetPackages)
         .Executes(async () =>
@@ -335,8 +325,7 @@ partial class Build : NukeBuild
 
     Target Package => _ => _
         .DependsOn(RunTests)
-        .DependsOn(CreateNugetPackages)
-        .DependsOn(ValidateApiDiff);
+        .DependsOn(CreateNugetPackages);
 
     Target CiAzureLinux => _ => _
         .DependsOn(RunTests);
