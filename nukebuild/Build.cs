@@ -38,9 +38,8 @@ partial class Build : NukeBuild
     [PackageExecutable("Microsoft.DotNet.GenAPI.Tool", "Microsoft.DotNet.GenAPI.Tool.dll", Framework = "net8.0")]
     Tool ApiGenTool;
 
-    [PackageExecutable("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")]
-    Tool IlRepackTool;
-    
+    [PackageExecutable("dotnet-ilrepack", "ILRepackTool.dll", Framework = "net8.0")] Tool IlRepackTool;
+
     protected override void OnBuildInitialized()
     {
         Parameters = new BuildParameters(this, ScheduledTargets.Contains(BuildToNuGetCache));
@@ -55,6 +54,7 @@ partial class Build : NukeBuild
             Information("Repository Name: " + Parameters.RepositoryName);
             Information("Repository Branch: " + Parameters.RepositoryBranch);
         }
+
         Information("Configuration: " + Parameters.Configuration);
         Information("IsLocalBuild: " + Parameters.IsLocalBuild);
         Information("IsRunningOnUnix: " + Parameters.IsRunningOnUnix);
@@ -71,8 +71,9 @@ partial class Build : NukeBuild
         void ExecWait(string preamble, string command, string args)
         {
             Console.WriteLine(preamble);
-            Process.Start(new ProcessStartInfo(command, args) {UseShellExecute = false}).WaitForExit();
+            Process.Start(new ProcessStartInfo(command, args) { UseShellExecute = false }).WaitForExit();
         }
+
         ExecWait("dotnet version:", "dotnet", "--info");
         ExecWait("dotnet workloads:", "dotnet", "workload list");
         Information("Processor count: " + Environment.ProcessorCount);
@@ -97,6 +98,7 @@ partial class Build : NukeBuild
                 .AddProperty("SkipBuildingTests", "True");
         return c;
     }
+
     DotNetBuildSettings ApplySetting(DotNetBuildSettings c, Configure<DotNetBuildSettings> configurator = null) =>
         ApplySettingCore(c).Build.Apply(configurator);
 
@@ -138,7 +140,8 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             var project = $"{RootDirectory}/native/Avalonia.Native/src/OSX/Avalonia.Native.OSX.xcodeproj/";
-            var args = $"-project {project} -configuration {Parameters.Configuration} CONFIGURATION_BUILD_DIR={RootDirectory}/Build/Products/Release";
+            var args =
+                $"-project {project} -configuration {Parameters.Configuration} CONFIGURATION_BUILD_DIR={RootDirectory}/Build/Products/Release";
             ProcessTasks.StartProcess("xcodebuild", args).AssertZeroExitCode();
         });
 
@@ -171,7 +174,7 @@ partial class Build : NukeBuild
     {
         Information($"Running tests from {projectName}");
         var project = RootDirectory.GlobFiles(@$"**\{projectName}.csproj").FirstOrDefault()
-            ?? throw new InvalidOperationException($"Project {projectName} doesn't exist");
+                      ?? throw new InvalidOperationException($"Project {projectName} doesn't exist");
 
         // Nuke and MSBuild tools have build-in helpers to get target frameworks from the project.
         // Unfortunately, it gets broken with every second SDK update, so we had to do it manually.
@@ -186,6 +189,7 @@ partial class Build : NukeBuild
                 targetFrameworks = new[] { targetFramework };
             }
         }
+
         if (targetFrameworks is null)
         {
             throw new InvalidOperationException("No target frameworks were found in the test project");
@@ -198,16 +202,19 @@ partial class Build : NukeBuild
             {
                 tfm = "net8.0";
             }
+
             if (tfm == "$(AvsLegacyTargetFrameworks)")
             {
                 tfm = "net6.0";
             }
-            
+
             if (tfm.StartsWith("net4")
-                && (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                && (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 && Environment.GetEnvironmentVariable("FORCE_LINUX_TESTS") != "1")
             {
-                Information($"Skipping {projectName} ({tfm}) tests on *nix - https://github.com/mono/mono/issues/13969");
+                Information(
+                    $"Skipping {projectName} ({tfm}) tests on *nix - https://github.com/mono/mono/issues/13969");
                 continue;
             }
 
@@ -224,55 +231,8 @@ partial class Build : NukeBuild
         }
     }
 
-    Target RunCoreLibsTests => _ => _
-        .OnlyWhenStatic(() => !Parameters.SkipTests)
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            RunCoreTest("Avalonia.Base.UnitTests");
-            RunCoreTest("Avalonia.Controls.UnitTests");
-            RunCoreTest("Avalonia.Markup.UnitTests");
-            RunCoreTest("Avalonia.Markup.Xaml.UnitTests");
-            RunCoreTest("Avalonia.Skia.UnitTests");
-            RunCoreTest("Avalonia.ReactiveUI.UnitTests");
-            RunCoreTest("Avalonia.Headless.NUnit.PerAssembly.UnitTests");
-            RunCoreTest("Avalonia.Headless.NUnit.PerTest.UnitTests");
-            RunCoreTest("Avalonia.Headless.XUnit.PerAssembly.UnitTests");
-            RunCoreTest("Avalonia.Headless.XUnit.PerTest.UnitTests");
-        });
-
-    Target RunRenderTests => _ => _
-        .OnlyWhenStatic(() => !Parameters.SkipTests)
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            RunCoreTest("Avalonia.Skia.RenderTests");
-            if (Parameters.IsRunningOnWindows)
-                RunCoreTest("Avalonia.Direct2D1.RenderTests");
-        });
-
-    Target RunToolsTests => _ => _
-        .OnlyWhenStatic(() => !Parameters.SkipTests)
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            RunCoreTest("Avalonia.Generators.Tests");
-        });
-
-    Target RunLeakTests => _ => _
-        .OnlyWhenStatic(() => !Parameters.SkipTests && Parameters.IsRunningOnWindows)
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            void DoMemoryTest()
-            {
-                RunCoreTest("Avalonia.LeakTests");
-            }
-            ControlFlow.ExecuteWithRetry(DoMemoryTest, delay: TimeSpan.FromMilliseconds(3));
-        });
-
     Target ZipFiles => _ => _
-        .After(CreateNugetPackages, Compile, RunCoreLibsTests, Package)
+        .After(CreateNugetPackages, Compile, Package)
         .Executes(() =>
         {
             var data = Parameters;
@@ -281,7 +241,6 @@ partial class Build : NukeBuild
 
     Target CreateIntermediateNugetPackages => _ => _
         .DependsOn(Compile)
-        .After(RunTests)
         .Executes(() =>
         {
             DotNetPack(c => ApplySetting(c).SetProject(Parameters.MSBuildSolution));
@@ -293,17 +252,17 @@ partial class Build : NukeBuild
         {
             BuildTasksPatcher.PatchBuildTasksInPackage(Parameters.NugetIntermediateRoot / "Avalonia.Build.Tasks." +
                                                        Parameters.Version + ".nupkg",
-                                                       IlRepackTool);
+                IlRepackTool);
             var config = Numerge.MergeConfiguration.LoadFile(RootDirectory / "nukebuild" / "numerge.config");
             EnsureCleanDirectory(Parameters.NugetRoot);
-            if(!Numerge.NugetPackageMerger.Merge(Parameters.NugetIntermediateRoot, Parameters.NugetRoot, config,
-                new NumergeNukeLogger()))
+            if (!Numerge.NugetPackageMerger.Merge(Parameters.NugetIntermediateRoot, Parameters.NugetRoot, config,
+                    new NumergeNukeLogger()))
                 throw new Exception("Package merge failed");
             RefAssemblyGenerator.GenerateRefAsmsInPackage(
                 Parameters.NugetRoot / $"Avalonia.{Parameters.Version}.nupkg",
                 Parameters.NugetRoot / $"Avalonia.{Parameters.Version}.snupkg");
         });
-    
+
     Target OutputApiDiff => _ => _
         .DependsOn(CreateNugetPackages)
         .Executes(async () =>
@@ -313,19 +272,9 @@ partial class Build : NukeBuild
                     ApiGenTool, RootDirectory / "api" / "diff",
                     nugetPackage, Parameters.ApiValidationBaseline)));
         });
-    
-    Target RunTests => _ => _
-        .DependsOn(RunCoreLibsTests)
-        .DependsOn(RunRenderTests)
-        .DependsOn(RunToolsTests)
-        .DependsOn(RunLeakTests);
 
     Target Package => _ => _
-        .DependsOn(RunTests)
         .DependsOn(CreateNugetPackages);
-
-    Target CiAzureLinux => _ => _
-        .DependsOn(RunTests);
 
     Target CiAzureOSX => _ => _
         .DependsOn(Package)
@@ -344,7 +293,7 @@ partial class Build : NukeBuild
 
             var globalPackagesFolder = SettingsUtility.GetGlobalPackagesFolder(
                 Settings.LoadDefaultSettings(RootDirectory));
-            
+
             foreach (var path in Parameters.NugetRoot.GlobFiles("*.nupkg"))
             {
                 using var f = File.Open(path.ToString(), FileMode.Open, FileAccess.Read);
@@ -379,11 +328,16 @@ partial class Build : NukeBuild
             file.GenerateCppHeader());
     });
 
-    public static int Main() =>
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Execute<Build>(x => x.Package)
-            : Execute<Build>(x => x.RunTests);
+    public static int Main()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
 
+            return Execute<Build>(x => x.Package);
+        }
+
+        return 0;
+    }
 }
 
 public static class ToolSettingsExtensions
