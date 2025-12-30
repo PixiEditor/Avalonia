@@ -1168,6 +1168,11 @@ namespace Avalonia.Win32
 
         private void FlushIntermediatePackets(uint count)
         {
+            if (count == 0)
+            {
+                return;
+            }
+            
             uint actualSize = 0;
             var packets = _wnData.GetDataPackets(count, true, ref actualSize);
             foreach (var packet in packets)
