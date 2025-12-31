@@ -1280,9 +1280,6 @@ namespace Avalonia.Win32
                     var x = mp.x > 32767 ? mp.x - 65536 : mp.x;
                     var y = mp.y > 32767 ? mp.y - 65536 : mp.y;
 
-                    if (mp.time <= prevMovePoint.time || mp.time >= movePoint.time)
-                        continue;
-
                     s_sortedPoints.Add(new InternalPoint
                     {
                         Time = mp.time,
@@ -1295,6 +1292,9 @@ namespace Avalonia.Win32
 
                 foreach (var p in s_sortedPoints)
                 {
+                    if(p.Time <= prevMovePoint.time || p.Time >= movePoint.time)
+                        continue;
+
                     var client = PointToClient(p.Pt);
 
                     s_intermediatePointsPooledList.Add(new RawPointerPoint
