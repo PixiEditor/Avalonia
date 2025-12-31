@@ -696,7 +696,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         private void CheckForValidHCTX(string msg)
         {
-            if (m_context.HCtx == 0)
+            if (m_context.HCtx == IntPtr.Zero)
             {
                 throw new Exception(msg + " - Bad Context");
             }

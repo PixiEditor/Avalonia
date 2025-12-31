@@ -41,12 +41,12 @@ namespace Avalonia.Win32
                 {
                     // lParam is the HCTX (Wintab Context Handle)
                     // wParam is the serial number of the packet
-                    if(_hCtx.HCtx == (uint)IntPtr.Zero)
+                    if(_hCtx.HCtx == IntPtr.Zero)
                         break;
 
                     uint pktId = (uint)ToInt32(wParam);
                     WintabPacket packet = _wnData.GetDataPacket(_hCtx.HCtx, pktId);
-                    if (packet.pkContext != 0)
+                    if (packet.pkContext != IntPtr.Zero)
                     {
                         var raw = CreateRawPointerPoint(packet);
                         var eventType = GetEventType(packet);
