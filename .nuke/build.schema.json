@@ -88,13 +88,10 @@
               "OutputVersion",
               "Package",
               "RunCoreLibsTests",
-              "RunHtmlPreviewerTests",
               "RunLeakTests",
               "RunRenderTests",
               "RunTests",
               "RunToolsTests",
-              "ValidateApiDiff",
-              "VerifyXamlCompilation",
               "ZipFiles"
             ]
           }
@@ -126,13 +123,10 @@
               "OutputVersion",
               "Package",
               "RunCoreLibsTests",
-              "RunHtmlPreviewerTests",
               "RunLeakTests",
               "RunRenderTests",
               "RunTests",
               "RunToolsTests",
-              "ValidateApiDiff",
-              "VerifyXamlCompilation",
               "ZipFiles"
             ]
           }
