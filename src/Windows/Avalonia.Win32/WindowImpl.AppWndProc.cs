@@ -47,7 +47,7 @@ namespace Avalonia.Win32
 
                     uint pktId = (uint)ToInt32(wParam);
                     WintabPacket packet = _wnData.GetDataPacket(_hCtx.HCtx, pktId);
-                    if (packet.pkContext != 0)
+                    if (packet.pkContext.Value != IntPtr.Zero)
                     {
                         var raw = CreateRawPointerPoint(packet);
                         var eventType = GetEventType(packet);
@@ -1228,6 +1228,9 @@ namespace Avalonia.Win32
                     var x = mp.x > 32767 ? mp.x - 65536 : mp.x;
                     var y = mp.y > 32767 ? mp.y - 65536 : mp.y;
 
+                    if(mp.time <= prevMovePoint.time || mp.time >= movePoint.time)
+                        continue;
+
                     s_sortedPoints.Add(new InternalPoint
                     {
                         Time = mp.time,
@@ -1240,9 +1243,6 @@ namespace Avalonia.Win32
 
                 foreach (var p in s_sortedPoints)
                 {
-                    if(p.Time <= prevMovePoint.time || p.Time >= movePoint.time)
-                        continue;
-
                     var client = PointToClient(p.Pt);
 
                     s_intermediatePointsPooledList.Add(new RawPointerPoint
