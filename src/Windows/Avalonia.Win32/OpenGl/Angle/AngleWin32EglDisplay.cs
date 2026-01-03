@@ -153,13 +153,14 @@ namespace Avalonia.Win32.OpenGl.Angle
                 if (display == IntPtr.Zero)
                     throw OpenGlException.GetFormattedException("eglGetPlatformDisplayEXT", egl);
 
-
                 var rv = new AngleWin32EglDisplay(display, egl,
                     new EglDisplayOptions
                     {
                         DisposeCallback = Cleanup,
                         Egl = egl,
                         ContextLossIsDisplayLoss = true,
+                        SupportsContextSharing = true,
+                        SupportsMultipleContexts = true,
                         DeviceLostCheckCallback = () => d3dDevice.DeviceRemovedReason != 0,
                         GlVersions = AvaloniaLocator.Current.GetService<AngleOptions>()?.GlProfiles
                     }, AngleOptions.PlatformApi.DirectX11);
