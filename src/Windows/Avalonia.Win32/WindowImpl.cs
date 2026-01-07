@@ -584,7 +584,7 @@ namespace Avalonia.Win32
                     0,
                     0,
                     SetWindowPosFlags.SWP_NOSIZE | SetWindowPosFlags.SWP_NOACTIVATE | SetWindowPosFlags.SWP_NOZORDER);
-                
+
                 if (ShCoreAvailable && Win32Platform.WindowsVersion >= PlatformConstants.Windows8_1)
                 {
                     var monitor = MonitorFromWindow(Handle.Handle, MONITOR.MONITOR_DEFAULTTONEAREST);
@@ -818,19 +818,13 @@ namespace Avalonia.Win32
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (e.Pointer.IsPrimary)
-                {
-                    // SendMessage's return value is dependent on the message send.  WM_SYSCOMMAND
-                    // and WM_LBUTTONUP return value just signify whether the WndProc handled the
-                    // message or not, so they are not interesting
+                // SendMessage's return value is dependent on the message send.  WM_SYSCOMMAND
+                // and WM_LBUTTONUP return value just signify whether the WndProc handled the
+                // message or not, so they are not interesting
 
-                    SendMessage(_hwnd, (int)WindowsMessage.WM_SYSCOMMAND, (IntPtr)SC_MOUSEMOVE, IntPtr.Zero);
-                    SendMessage(_hwnd, (int)WindowsMessage.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
-                }
-                else
-                {
-                    throw new InvalidOperationException("BeginMoveDrag Failed");
-                }
+                SendMessage(_hwnd, (int)WindowsMessage.WM_SYSCOMMAND, (IntPtr)SC_MOUSEMOVE, IntPtr.Zero);
+                SendMessage(_hwnd, (int)WindowsMessage.WM_LBUTTONUP, IntPtr.Zero, IntPtr.Zero);
+
             }, DispatcherPriority.Send);
         }
 
@@ -860,7 +854,7 @@ namespace Avalonia.Win32
             var hCursor = impl?.Handle ?? s_defaultCursor;
             SetClassLong(_hwnd, ClassLongIndex.GCLP_HCURSOR, hCursor);
 
-            UnmanagedMethods.SetCursor(hCursor);    
+            UnmanagedMethods.SetCursor(hCursor);
         }
 
         public void SetIcon(IWindowIconImpl? icon)
