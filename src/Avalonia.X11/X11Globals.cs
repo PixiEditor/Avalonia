@@ -49,6 +49,13 @@ namespace Avalonia.X11
             }
             
             _compositingAtom = XInternAtom(_x11.Display, "_NET_WM_CM_S" + _screenNumber, false);
+            
+            if (_x11.HasXkb)
+            {
+                nint supportsDetectable = 0;
+                XkbSetDetectableAutoRepeat(_x11.Display, true, supportsDetectable);
+            }
+            
             OnNewWindowManager();
             UpdateCompositingAtomOwner();
         }

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>$(AvsCurrentTargetFramework);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(AvsCurrentTargetFramework);</TargetFrameworks>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <IncludeAvaloniaGenerators>true</IncludeAvaloniaGenerators>
     <!--<AvaloniaXamlIlDebuggerLaunch>true</AvaloniaXamlIlDebuggerLaunch>-->

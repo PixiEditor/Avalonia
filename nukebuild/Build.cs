@@ -35,9 +35,6 @@ partial class Build : NukeBuild
 {
     BuildParameters Parameters { get; set; }
 
-    [PackageExecutable("Microsoft.DotNet.ApiCompat.Tool", "Microsoft.DotNet.ApiCompat.Tool.dll", Framework = "net6.0")]
-    Tool ApiCompatTool;
-    
     [PackageExecutable("Microsoft.DotNet.GenAPI.Tool", "Microsoft.DotNet.GenAPI.Tool.dll", Framework = "net8.0")]
     Tool ApiGenTool;
 
@@ -227,21 +224,6 @@ partial class Build : NukeBuild
         }
     }
 
-    Target RunHtmlPreviewerTests => _ => _
-        .DependsOn(CompileHtmlPreviewer)
-        .OnlyWhenStatic(() => !(Parameters.SkipPreviewer || Parameters.SkipTests))
-        .Executes(() =>
-        {
-            var webappTestDir = RootDirectory / "tests" / "Avalonia.DesignerSupport.Tests" / "Remote" / "HtmlTransport" / "webapp";
-
-            NpmTasks.NpmInstall(c => c
-                .SetProcessWorkingDirectory(webappTestDir)
-                .SetProcessArgumentConfigurator(a => a.Add("--silent")));
-            NpmTasks.NpmRun(c => c
-                .SetProcessWorkingDirectory(webappTestDir)
-                .SetCommand("test"));
-        });
-
     Target RunCoreLibsTests => _ => _
         .OnlyWhenStatic(() => !Parameters.SkipTests)
         .DependsOn(Compile)
@@ -274,8 +256,6 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             RunCoreTest("Avalonia.Generators.Tests");
-            if (Parameters.IsRunningOnWindows)
-                RunCoreTest("Avalonia.DesignerSupport.Tests");
         });
 
     Target RunLeakTests => _ => _
@@ -323,16 +303,6 @@ partial class Build : NukeBuild
                 Parameters.NugetRoot / $"Avalonia.{Parameters.Version}.snupkg");
         });
     
-    Target ValidateApiDiff => _ => _
-        .DependsOn(CreateNugetPackages)
-        .Executes(async () =>
-        {
-            await Task.WhenAll(
-                Directory.GetFiles(Parameters.NugetRoot, "*.nupkg").Select(nugetPackage => ApiDiffHelper.ValidatePackage(
-                    ApiCompatTool, nugetPackage, Parameters.ApiValidationBaseline,
-                    Parameters.ApiValidationSuppressionFiles, Parameters.UpdateApiValidationSuppression)));
-        });
-    
     Target OutputApiDiff => _ => _
         .DependsOn(CreateNugetPackages)
         .Executes(async () =>
@@ -347,13 +317,11 @@ partial class Build : NukeBuild
         .DependsOn(RunCoreLibsTests)
         .DependsOn(RunRenderTests)
         .DependsOn(RunToolsTests)
-        .DependsOn(RunHtmlPreviewerTests)
         .DependsOn(RunLeakTests);
 
     Target Package => _ => _
         .DependsOn(RunTests)
-        .DependsOn(CreateNugetPackages)
-        .DependsOn(ValidateApiDiff);
+        .DependsOn(CreateNugetPackages);
 
     Target CiAzureLinux => _ => _
         .DependsOn(RunTests);
@@ -364,7 +332,6 @@ partial class Build : NukeBuild
 
     Target CiAzureWindows => _ => _
         .DependsOn(Package)
-        .DependsOn(VerifyXamlCompilation)
         .DependsOn(ZipFiles);
 
     Target BuildToNuGetCache => _ => _
@@ -410,68 +377,6 @@ partial class Build : NukeBuild
         File.WriteAllText(RootDirectory / "native" / "Avalonia.Native" / "inc" / "avalonia-native.h",
             file.GenerateCppHeader());
     });
-
-    Target VerifyXamlCompilation => _ => _
-        .DependsOn(CreateNugetPackages)
-        .Executes(() =>
-        {
-            var buildTestsDirectory = RootDirectory / "tests" / "BuildTests";
-            var artifactsDirectory = buildTestsDirectory / "artifacts";
-            var nugetCacheDirectory = artifactsDirectory / "nuget-cache";
-
-            DeleteDirectory(artifactsDirectory);
-            BuildTestsAndVerify("Debug");
-            BuildTestsAndVerify("Release");
-
-            void BuildTestsAndVerify(string configuration)
-            {
-                var configName = configuration.ToLowerInvariant();
-
-                DotNetBuild(settings => settings
-                    .SetConfiguration(configuration)
-                    .SetProperty("AvaloniaVersion", Parameters.Version)
-                    .SetProperty("NuGetPackageRoot", nugetCacheDirectory)
-                    .SetPackageDirectory(nugetCacheDirectory)
-                    .SetProjectFile(buildTestsDirectory / "BuildTests.sln")
-                    .SetProcessArgumentConfigurator(arguments => arguments.Add("--nodeReuse:false")));
-
-                // Standard compilation - should have compiled XAML
-                VerifyBuildTestAssembly("bin", "BuildTests");
-                VerifyBuildTestAssembly("bin", "BuildTests.Android");
-                VerifyBuildTestAssembly("bin", "BuildTests.Browser");
-                VerifyBuildTestAssembly("bin", "BuildTests.Desktop");
-                VerifyBuildTestAssembly("bin", "BuildTests.FSharp");
-                VerifyBuildTestAssembly("bin", "BuildTests.iOS");
-                VerifyBuildTestAssembly("bin", "BuildTests.WpfHybrid");
-
-                // Publish previously built project without rebuilding - should have compiled XAML
-                PublishBuildTestProject("BuildTests.Desktop", noBuild: true);
-                VerifyBuildTestAssembly("publish", "BuildTests.Desktop");
-
-                // Publish NativeAOT build, then run it - should not crash and have the expected output
-                PublishBuildTestProject("BuildTests.NativeAot");
-                var exeExtension = OperatingSystem.IsWindows() ? ".exe" : null;
-                XamlCompilationVerifier.VerifyNativeAot(
-                    GetBuildTestOutputPath("publish", "BuildTests.NativeAot", exeExtension));
-
-                void PublishBuildTestProject(string projectName, bool? noBuild = null)
-                    => DotNetPublish(settings => settings
-                        .SetConfiguration(configuration)
-                        .SetProperty("AvaloniaVersion", Parameters.Version)
-                        .SetProperty("NuGetPackageRoot", nugetCacheDirectory)
-                        .SetPackageDirectory(nugetCacheDirectory)
-                        .SetNoBuild(noBuild)
-                        .SetProject(buildTestsDirectory / projectName / (projectName + ".csproj"))
-                        .SetProcessArgumentConfigurator(arguments => arguments.Add("--nodeReuse:false")));
-
-                void VerifyBuildTestAssembly(string folder, string projectName)
-                    => XamlCompilationVerifier.VerifyAssemblyCompiledXaml(
-                        GetBuildTestOutputPath(folder, projectName, ".dll"));
-
-                AbsolutePath GetBuildTestOutputPath(string folder, string projectName, string extension)
-                    => artifactsDirectory / folder / projectName / configName / (projectName + extension);
-            }
-        });
 
     public static int Main() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)

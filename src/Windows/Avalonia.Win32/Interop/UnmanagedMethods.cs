@@ -38,6 +38,15 @@ namespace Avalonia.Win32.Interop
         public static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = new IntPtr(-3);
         public static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
 
+        public const uint SIGNATURE_MASK = 0xFFFFFF00;
+        public const uint PEN_ID_SIGNATURE = 0xFF515700;
+
+        public static bool IsMessageFromPen()
+        {
+            IntPtr extra = GetMessageExtraInfo();
+            return ((uint)extra & SIGNATURE_MASK) == PEN_ID_SIGNATURE;
+        }
+
         public enum Cursor
         {
             IDC_ARROW = 32512,
@@ -869,6 +878,14 @@ namespace Avalonia.Win32.Interop
             DWMWCP_ROUNDSMALL
         }
 
+        public enum DwmNCRenderingPolicy : uint
+        {
+            DWMNCRP_USEWINDOWSTYLE,
+            DWMNCRP_DISABLED,
+            DWMNCRP_ENABLED,
+            DWMNCRP_LAST
+        }
+
         public enum MapVirtualKeyMapTypes : uint
         {
             MAPVK_VK_TO_VSC = 0x00,
@@ -1244,6 +1261,15 @@ namespace Avalonia.Win32.Interop
 
         [DllImport("gdi32.dll")]
         public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, IntPtr lpbmi, uint fuColorUse);
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPINFO lpbmi, uint fuColorUse);
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPINFOHEADER lpbmi, uint fuColorUse);
+
+        [DllImport("gdi32.dll")]
+        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPV5HEADER lpbmi, uint fuColorUse);
 
         [DllImport("gdi32.dll", SetLastError = false, ExactSpelling = true)]
         public static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
