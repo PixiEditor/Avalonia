@@ -1537,6 +1537,38 @@ namespace Avalonia.Win32
 
                 if (newProperties.Decorations != SystemDecorations.None && newProperties.IsResizable)
                     style |= WindowStyles.WS_THICKFRAME;
+                else
+                    style &= ~WindowStyles.WS_THICKFRAME;
+
+                if (newProperties.IsMinimizable)
+                    style |= WindowStyles.WS_MINIMIZEBOX;
+                else
+                    style &= ~WindowStyles.WS_MINIMIZEBOX;
+
+                if (newProperties.IsMaximizable || (newProperties.WindowState == WindowState.Maximized && newProperties.IsResizable))
+                    style |= WindowStyles.WS_MAXIMIZEBOX;
+                else
+                    style &= ~WindowStyles.WS_MAXIMIZEBOX;
+
+                const WindowStyles fullDecorationFlags = WindowStyles.WS_CAPTION | WindowStyles.WS_BORDER | WindowStyles.WS_SYSMENU;
+
+                if (newProperties.Decorations == SystemDecorations.Full)
+                {
+                    style |= fullDecorationFlags;
+                }
+                else
+                {
+                    style &= ~(fullDecorationFlags | WindowStyles.WS_THICKFRAME);
+
+                    if (newProperties.Decorations == SystemDecorations.BorderOnly && newProperties.WindowState != WindowState.Maximized && newProperties.IsResizable)
+                    {
+                        style |= WindowStyles.WS_THICKFRAME | WindowStyles.WS_BORDER;
+                    }
+                    else if(newProperties.WindowState == WindowState.Maximized && _isClientAreaExtended)
+                    {
+                        style |= WindowStyles.WS_THICKFRAME;
+                    }
+                }
 
                 var windowStates = GetWindowStateStyles();
                 style &= ~WindowStateMask;
@@ -1778,6 +1810,7 @@ namespace Avalonia.Win32
             public int Time;
             public PixelPoint Pt;
         }
+
 
         private struct WindowRectAdjuster
         {

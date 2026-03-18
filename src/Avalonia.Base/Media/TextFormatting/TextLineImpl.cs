@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Avalonia.Media.TextFormatting.Unicode;
@@ -853,8 +853,13 @@ namespace Avalonia.Media.TextFormatting
                         {
                             var length = 0;
 
-                            while (Codepoint.ReadAt(shapedRun.GlyphRun.Characters.Span, length, out var count) != Codepoint.ReplacementCodepoint)
+                            while (Codepoint.ReadAt(shapedRun.GlyphRun.Characters.Span, length, out var count) is Codepoint codepoint && codepoint != Codepoint.ReplacementCodepoint)
                             {
+                                if (codepoint.Value == 0x0D && Codepoint.ReadAt(shapedRun.GlyphRun.Characters.Span, length + count, out var lfCount).Value == 0x0A)
+                                {
+                                    count += lfCount;
+                                }
+
                                 if (length + count >= runOffset)
                                 {
                                     break;
@@ -869,7 +874,7 @@ namespace Avalonia.Media.TextFormatting
                         {
                             previousCharacterHit = shapedRun.GlyphRun.GetPreviousCaretCharacterHit(new CharacterHit(firstCluster + runOffset));
 
-                            if(textSourceOffset > 0)
+                            if (textSourceOffset > 0)
                             {
                                 previousCharacterHit = new CharacterHit(textSourceOffset + previousCharacterHit.FirstCharacterIndex, previousCharacterHit.TrailingLength);
                             }
@@ -1418,7 +1423,7 @@ namespace Avalonia.Media.TextFormatting
             var overhangLeading = inkBounds.Left;
             //The width of overhanging pixels at the end of the natural bounds. Positive value means we are inside.
             var overhangTrailing = widthIncludingWhitespace - inkBounds.Right;
-            var hasOverflowed = width > _paragraphWidth;
+            var hasOverflowed = MathUtilities.GreaterThan(width, _paragraphWidth);
 
             var start = GetParagraphOffsetX(width, widthIncludingWhitespace);
 

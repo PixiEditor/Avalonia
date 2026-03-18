@@ -43,7 +43,18 @@ namespace Avalonia.Skia
 
             var usedCulture = culture ?? CultureInfo.CurrentCulture;
 
-            buffer.Language = s_cachedLanguage.GetOrAdd(usedCulture.LCID, _ => new Language(usedCulture));
+#if NETSTANDARD2_0
+            if (!s_cachedLanguage.TryGetValue(usedCulture.LCID, out var language))
+            {
+                language = s_cachedLanguage.GetOrAdd(usedCulture.LCID, new Language(usedCulture));
+            }
+            buffer.Language = language;
+#else
+            buffer.Language = s_cachedLanguage.GetOrAdd(
+                usedCulture.LCID,
+                static (_, culture) => new Language(culture),
+                usedCulture);
+#endif
 
             var font = ((GlyphTypefaceImpl)typeface).Font;
 
