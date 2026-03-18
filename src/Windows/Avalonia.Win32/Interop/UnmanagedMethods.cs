@@ -1262,15 +1262,6 @@ namespace Avalonia.Win32.Interop
         [DllImport("gdi32.dll")]
         public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, IntPtr lpbmi, uint fuColorUse);
 
-        [DllImport("gdi32.dll")]
-        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPINFO lpbmi, uint fuColorUse);
-
-        [DllImport("gdi32.dll")]
-        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPINFOHEADER lpbmi, uint fuColorUse);
-
-        [DllImport("gdi32.dll")]
-        public static extern int SetDIBits(IntPtr hdc, IntPtr hbm, uint start, uint cLines, IntPtr lpBits, in BITMAPV5HEADER lpbmi, uint fuColorUse);
-
         [DllImport("gdi32.dll", SetLastError = false, ExactSpelling = true)]
         public static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
 

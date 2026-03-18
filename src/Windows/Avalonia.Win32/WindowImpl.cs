@@ -1810,5 +1810,39 @@ namespace Avalonia.Win32
             public int Time;
             public PixelPoint Pt;
         }
+
+
+        private struct WindowRectAdjuster
+        {
+            private static readonly bool s_hasAdjustWindowRectExForDpi = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 14393);
+
+            private readonly double _relativeScaling;
+            private readonly uint _dpi;
+
+            public WindowRectAdjuster(WindowImpl owner)
+            {
+                if (s_hasAdjustWindowRectExForDpi)
+                    _dpi = (uint)(owner.RenderScaling * StandardDpi);
+                else
+                {
+                    var primaryScaling = owner.Screen.AllScreens.FirstOrDefault(screen => screen.IsPrimary)?.Scaling ?? 1;
+                    _relativeScaling = owner.RenderScaling / primaryScaling;
+                }
+            }
+
+            public void Adjust(ref RECT rect, WindowStyles style, WindowStyles exStyle)
+            {
+                if (s_hasAdjustWindowRectExForDpi)
+                    AdjustWindowRectExForDpi(ref rect, style, false, exStyle, _dpi);
+                else
+                {
+                    AdjustWindowRectEx(ref rect, (uint)style, false, (uint)exStyle);
+                    rect.top = (int)(rect.top * _relativeScaling);
+                    rect.right = (int)(rect.right * _relativeScaling);
+                    rect.left = (int)(rect.left * _relativeScaling);
+                    rect.bottom = (int)(rect.bottom * _relativeScaling);
+                }
+            }
+        }
     }
 }
