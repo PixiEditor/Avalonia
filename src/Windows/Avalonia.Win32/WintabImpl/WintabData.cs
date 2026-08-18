@@ -184,7 +184,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public Int32 rotYaw;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if(obj is WTRotation other){
                 return this.rotPitch == other.rotPitch &&
@@ -306,7 +306,7 @@ namespace Avalonia.Win32.WintabImpl
 
         public static int ByteSize { get; } = Marshal.SizeOf<WintabPacket>();
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WintabPacket packet)
             {
