@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Selection;
@@ -77,14 +78,14 @@ namespace Avalonia.Controls
             private set => SetAndRaise(ScrollProperty, ref _scroll, value);
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SelectingItemsControl.SelectedItems"/>
         public new IList? SelectedItems
         {
             get => base.SelectedItems;
             set => base.SelectedItems = value;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc cref="SelectingItemsControl.Selection"/>
         public new ISelectionModel Selection
         {
             get => base.Selection;
@@ -126,9 +127,14 @@ namespace Avalonia.Controls
             return NeedsContainer<ListBoxItem>(item, out recycleKey);
         }
 
+        protected override AutomationPeer OnCreateAutomationPeer()
+        {
+            return new ListBoxAutomationPeer(this);
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            var hotkeys = Application.Current!.PlatformSettings?.HotkeyConfiguration;
+            var hotkeys = this.GetPlatformSettings()?.HotkeyConfiguration;
             var ctrl = hotkeys is not null && e.KeyModifiers.HasAllFlags(hotkeys.CommandModifiers);
 
             if (!ctrl &&
