@@ -131,7 +131,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public Int32 orTwist;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if(obj is WTOrientation other)
             {
@@ -375,7 +375,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public UInt32 nSerialNumber;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WTExtensionBase extensionBase)
             {
@@ -439,7 +439,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public WTPKT nState;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WTExpKeyData expKeyData)
             {
@@ -507,7 +507,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public WTPKT nPosition;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WTSliderData sliderData)
             {
@@ -571,7 +571,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public WTSliderData pkTouchRing;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WintabPacketExt packetExt)
             {

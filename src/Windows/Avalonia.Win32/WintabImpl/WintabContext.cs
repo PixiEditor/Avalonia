@@ -42,7 +42,7 @@ namespace Avalonia.Win32.WintabImpl
         /// </summary>
         public FIX32 axResolution;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is WintabAxis axis && axis.axMax == this.axMax && axis.axMin == this.axMin && axis.axResolution == this.axResolution && axis.axUnits == this.axUnits;
         }
@@ -77,7 +77,7 @@ namespace Avalonia.Win32.WintabImpl
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         public WintabAxis[] array;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is not WintabAxisArray arr)
             {
@@ -210,7 +210,7 @@ namespace Avalonia.Win32.WintabImpl
         public FIX32 lcSysSensX;
         public FIX32 lcSysSensY;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is WintabLogContext logContext)
             {
