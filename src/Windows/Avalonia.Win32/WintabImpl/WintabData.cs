@@ -130,6 +130,37 @@ namespace Avalonia.Win32.WintabImpl
         /// Specifies the clockwise rotation of the cursor about its own major axis.
         /// </summary>
         public Int32 orTwist;
+
+        public override bool Equals(object obj)
+        {
+            if(obj is WTOrientation other)
+            {
+                return this.orAzimuth == other.orAzimuth &&
+                       this.orAltitude == other.orAltitude &&
+                       this.orTwist == other.orTwist;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(orAzimuth);
+            hash.Add(orAltitude);
+            hash.Add(orTwist);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WTOrientation left, WTOrientation right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WTOrientation left, WTOrientation right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -152,6 +183,36 @@ namespace Avalonia.Win32.WintabImpl
         /// Specifies the yaw of the cursor.
         /// </summary>
         public Int32 rotYaw;
+
+        public override bool Equals(object obj)
+        {
+            if(obj is WTRotation other){
+                return this.rotPitch == other.rotPitch &&
+                       this.rotRoll == other.rotRoll &&
+                       this.rotYaw == other.rotYaw;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(rotPitch);
+            hash.Add(rotRoll);
+            hash.Add(rotYaw);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WTRotation left, WTRotation right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WTRotation left, WTRotation right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -244,6 +305,48 @@ namespace Avalonia.Win32.WintabImpl
         public WTOrientation pkOrientation; // ORIENTATION
 
         public static int ByteSize { get; } = Marshal.SizeOf<WintabPacket>();
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WintabPacket packet)
+            {
+                return pkSerialNumber == packet.pkSerialNumber &&
+                       pkCursor == packet.pkCursor &&
+                       pkButtons == packet.pkButtons &&
+                       pkX == packet.pkX &&
+                       pkY == packet.pkY &&
+                       pkZ == packet.pkZ &&
+                       pkNormalPressure == packet.pkNormalPressure &&
+                       pkTangentPressure == packet.pkTangentPressure &&
+                       pkOrientation == packet.pkOrientation;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(pkSerialNumber);
+            hash.Add(pkCursor);
+            hash.Add(pkButtons);
+            hash.Add(pkX);
+            hash.Add(pkY);
+            hash.Add(pkZ);
+            hash.Add(pkNormalPressure);
+            hash.Add(pkTangentPressure);
+            hash.Add(pkOrientation);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WintabPacket left, WintabPacket right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WintabPacket left, WintabPacket right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -271,6 +374,38 @@ namespace Avalonia.Win32.WintabImpl
         /// Reserved - not used.
         /// </summary>
         public UInt32 nSerialNumber;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WTExtensionBase extensionBase)
+            {
+                return nContext == extensionBase.nContext &&
+                       nStatus == extensionBase.nStatus &&
+                       nTime == extensionBase.nTime &&
+                       nSerialNumber == extensionBase.nSerialNumber;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(nContext);
+            hash.Add(nStatus);
+            hash.Add(nTime);
+            hash.Add(nSerialNumber);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WTExtensionBase left, WTExtensionBase right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WTExtensionBase left, WTExtensionBase right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -303,6 +438,40 @@ namespace Avalonia.Win32.WintabImpl
         /// Indicates Express Key button press (1 = pressed, 0 = released)
         /// </summary>
         public WTPKT nState;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WTExpKeyData expKeyData)
+            {
+                return nTablet == expKeyData.nTablet &&
+                       nControl == expKeyData.nControl &&
+                       nLocation == expKeyData.nLocation &&
+                       nReserved == expKeyData.nReserved &&
+                       nState == expKeyData.nState;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(nTablet);
+            hash.Add(nControl);
+            hash.Add(nLocation);
+            hash.Add(nReserved);
+            hash.Add(nState);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WTExpKeyData left, WTExpKeyData right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WTExpKeyData left, WTExpKeyData right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -337,6 +506,40 @@ namespace Avalonia.Win32.WintabImpl
         /// When there is no finger on the control, this value is negative.
         /// </summary>
         public WTPKT nPosition;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WTSliderData sliderData)
+            {
+                return nTablet == sliderData.nTablet &&
+                       nControl == sliderData.nControl &&
+                       nMode == sliderData.nMode &&
+                       nReserved == sliderData.nReserved &&
+                       nPosition == sliderData.nPosition;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(nTablet);
+            hash.Add(nControl);
+            hash.Add(nMode);
+            hash.Add(nReserved);
+            hash.Add(nPosition);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WTSliderData left, WTSliderData right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WTSliderData left, WTSliderData right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -367,6 +570,38 @@ namespace Avalonia.Win32.WintabImpl
         /// Extension data for one Touch Ring.
         /// </summary>
         public WTSliderData pkTouchRing;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WintabPacketExt packetExt)
+            {
+                return pkBase.Equals(packetExt.pkBase) &&
+                       pkExpKey.Equals(packetExt.pkExpKey) &&
+                       pkTouchStrip.Equals(packetExt.pkTouchStrip) &&
+                       pkTouchRing.Equals(packetExt.pkTouchRing);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hash = new HashCode();
+            hash.Add(pkBase);
+            hash.Add(pkExpKey);
+            hash.Add(pkTouchStrip);
+            hash.Add(pkTouchRing);
+            return hash.ToHashCode();
+        }
+
+        public static bool operator ==(WintabPacketExt left, WintabPacketExt right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WintabPacketExt left, WintabPacketExt right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>

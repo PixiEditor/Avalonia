@@ -41,6 +41,31 @@ namespace Avalonia.Win32.WintabImpl
         /// Is a fixed-point number giving the number of data item incre-ments per physical unit.
         /// </summary>
         public FIX32 axResolution;
+
+        public override bool Equals(object obj)
+        {
+            return obj is WintabAxis axis && axis.axMax == this.axMax && axis.axMin == this.axMin && axis.axResolution == this.axResolution && axis.axUnits == this.axUnits;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hashCode = new HashCode();
+            hashCode.Add(axMin);
+            hashCode.Add(axMax);
+            hashCode.Add(axUnits);
+            hashCode.Add(axResolution);
+            return hashCode.ToHashCode();
+        }
+
+        public static bool operator ==(WintabAxis left, WintabAxis right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WintabAxis left, WintabAxis right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -51,6 +76,48 @@ namespace Avalonia.Win32.WintabImpl
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         public WintabAxis[] array;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is not WintabAxisArray arr)
+            {
+                return false;
+            }
+
+            if(this.array.Length != arr.array.Length)
+            {
+                return false;
+            }
+
+            for (var index = 0; index < this.array.Length; index++)
+            {
+                if(this.array[index] != arr.array[index])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hashCode = new HashCode();
+            hashCode.Add(array[0]);
+            hashCode.Add(array[1]);
+            hashCode.Add(array[2]);
+            return hashCode.ToHashCode();
+        }
+
+        public static bool operator ==(WintabAxisArray left, WintabAxisArray right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WintabAxisArray left, WintabAxisArray right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -142,6 +209,97 @@ namespace Avalonia.Win32.WintabImpl
         public Int32 lcSysExtY;
         public FIX32 lcSysSensX;
         public FIX32 lcSysSensY;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is WintabLogContext logContext)
+            {
+                return lcOptions == logContext.lcOptions &&
+                       lcStatus == logContext.lcStatus &&
+                       lcLocks == logContext.lcLocks &&
+                       lcMsgBase == logContext.lcMsgBase &&
+                       lcDevice == logContext.lcDevice &&
+                       lcPktRate == logContext.lcPktRate &&
+                       lcPktData == logContext.lcPktData &&
+                       lcPktMode == logContext.lcPktMode &&
+                       lcMoveMask == logContext.lcMoveMask &&
+                       lcBtnDnMask == logContext.lcBtnDnMask &&
+                       lcBtnUpMask == logContext.lcBtnUpMask &&
+                       lcInOrgX == logContext.lcInOrgX &&
+                       lcInOrgY == logContext.lcInOrgY &&
+                       lcInOrgZ == logContext.lcInOrgZ &&
+                       lcInExtX == logContext.lcInExtX &&
+                       lcInExtY == logContext.lcInExtY &&
+                       lcInExtZ == logContext.lcInExtZ &&
+                       lcOutOrgX == logContext.lcOutOrgX &&
+                       lcOutOrgY == logContext.lcOutOrgY &&
+                       lcOutOrgZ == logContext.lcOutOrgZ &&
+                       lcOutExtX == logContext.lcOutExtX &&
+                       lcOutExtY == logContext.lcOutExtY &&
+                       lcOutExtZ == logContext.lcOutExtZ &&
+                       lcSensX.Equals(logContext.lcSensX) &&
+                       lcSensY.Equals(logContext.lcSensY) &&
+                       lcSensZ.Equals(logContext.lcSensZ) &&
+                       lcSysMode == logContext.lcSysMode &&
+                       lcSysOrgX == logContext.lcSysOrgX &&
+                       lcSysOrgY == logContext.lcSysOrgY &&
+                       lcSysExtX == logContext.lcSysExtX &&
+                       lcSysExtY == logContext.lcSysExtY &&
+                       lcSysSensX.Equals(logContext.lcSysSensX) &&
+                       lcSysSensY.Equals(logContext.lcSysSensY);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            HashCode hashCode = new HashCode();
+            hashCode.Add(lcOptions);
+            hashCode.Add(lcStatus);
+            hashCode.Add(lcLocks);
+            hashCode.Add(lcMsgBase);
+            hashCode.Add(lcDevice);
+            hashCode.Add(lcPktRate);
+            hashCode.Add(lcPktData);
+            hashCode.Add(lcPktMode);
+            hashCode.Add(lcMoveMask);
+            hashCode.Add(lcBtnDnMask);
+            hashCode.Add(lcBtnUpMask);
+            hashCode.Add(lcInOrgX);
+            hashCode.Add(lcInOrgY);
+            hashCode.Add(lcInOrgZ);
+            hashCode.Add(lcInExtX);
+            hashCode.Add(lcInExtY);
+            hashCode.Add(lcInExtZ);
+            hashCode.Add(lcOutOrgX);
+            hashCode.Add(lcOutOrgY);
+            hashCode.Add(lcOutOrgZ);
+            hashCode.Add(lcOutExtX);
+            hashCode.Add(lcOutExtY);
+            hashCode.Add(lcOutExtZ);
+            hashCode.Add(lcSensX);
+            hashCode.Add(lcSensY);
+            hashCode.Add(lcSensZ);
+            hashCode.Add(lcSysMode);
+            hashCode.Add(lcSysOrgX);
+            hashCode.Add(lcSysOrgY);
+            hashCode.Add(lcSysExtX);
+            hashCode.Add(lcSysExtY);
+            hashCode.Add(lcSysSensX);
+            hashCode.Add(lcSysSensY);
+            return hashCode.ToHashCode();
+        }
+
+        public static bool operator ==(WintabLogContext left, WintabLogContext right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WintabLogContext left, WintabLogContext right)
+        {
+            return !(left == right);
+        }
     }
 
     /// <summary>
@@ -219,10 +377,9 @@ namespace Avalonia.Win32.WintabImpl
             {
                 m_hCTX = new HCTX((IntPtr)WintabFuncs.WTOpenA(hwnd_I, ref m_logContext, enable_I));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // TODO: Throw
-                //MessageBox.Show("FAILED OpenContext: " + ex.ToString());
+                // ignored
             }
 
             return m_hCTX;
@@ -278,10 +435,9 @@ namespace Avalonia.Win32.WintabImpl
 
                 status = WintabFuncs.WTEnable(m_hCTX.Value, enable_I);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // TODO: Throw
-                //MessageBox.Show("FAILED EnableContext: " + ex.ToString());
+                // ignored
             }
 
             return status;
