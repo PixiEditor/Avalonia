@@ -11,13 +11,6 @@ public static class WintabMemUtils
     /// <param name="numPkts_I">number of packets to marshal</param>
     /// <param name="buf_I">pointer to unmanaged heap memory containing data packets</param>
     /// <returns></returns>
-
-    /// <summary>
-    /// Marshal unmanaged data packets into managed WintabPacket data.
-    /// </summary>
-    /// <param name="numPkts_I">number of packets to marshal</param>
-    /// <param name="buf_I">pointer to unmanaged heap memory containing data packets</param>
-    /// <returns></returns>
     public static WintabPacket[] MarshalDataPackets(UInt32 numPkts_I, IntPtr buf_I)
     {
         if (numPkts_I == 0 || buf_I == IntPtr.Zero)
