@@ -911,10 +911,10 @@ namespace Avalonia.Win32.Interop
 
         public enum BitmapIntent : uint
         {
-            LCS_GM_ABS_COLORIMETRIC = 1,
-            LCS_GM_BUSINESS = 2,
-            LCS_GM_GRAPHICS = 4,
-            LCS_GM_IMAGES = 8,
+            LCS_GM_BUSINESS = 1,
+            LCS_GM_GRAPHICS = 2,
+            LCS_GM_IMAGES = 4,
+            LCS_GM_ABS_COLORIMETRIC = 8,
         }
 
         public enum DIBColorTable
@@ -1785,6 +1785,8 @@ namespace Avalonia.Win32.Interop
         public static extern int DeleteObject(IntPtr hObject);
         [DllImport("gdi32.dll", SetLastError = true)]
         public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteDC(IntPtr hdc);
         [DllImport("gdi32.dll")]
         public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hObject);
 
