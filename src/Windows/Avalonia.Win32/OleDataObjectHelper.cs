@@ -118,6 +118,7 @@ internal static class OleDataObjectHelper
             bitmapInfoHeader.Init();
 
             IntPtr destHdc = IntPtr.Zero, compatDc = IntPtr.Zero, section = IntPtr.Zero, sourceHdc = IntPtr.Zero, srcCompatHdc = IntPtr.Zero;
+            IntPtr oldCompatObject = IntPtr.Zero, oldSrcCompatObject = IntPtr.Zero;
 
             try
             {
@@ -133,7 +134,7 @@ internal static class OleDataObjectHelper
                 if (section == IntPtr.Zero)
                     return null;
 
-                SelectObject(compatDc, section);
+                oldCompatObject = SelectObject(compatDc, section);
                 sourceHdc = GetDC(IntPtr.Zero);
                 if (sourceHdc == IntPtr.Zero)
                     return null;
@@ -142,7 +143,7 @@ internal static class OleDataObjectHelper
                 if (srcCompatHdc == IntPtr.Zero)
                     return null;
 
-                SelectObject(srcCompatHdc, bitmapHandle);
+                oldSrcCompatObject = SelectObject(srcCompatHdc, bitmapHandle);
 
                 if (StretchBlt(compatDc, 0, bitmapInfoHeader.biHeight, bitmapInfoHeader.biWidth, -bitmapInfoHeader.biHeight, srcCompatHdc, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY) != 0)
                     return new Bitmap(Platform.PixelFormats.Bgra8888,
@@ -154,14 +155,20 @@ internal static class OleDataObjectHelper
             }
             finally
             {
+                if (oldSrcCompatObject != IntPtr.Zero)
+                    SelectObject(srcCompatHdc, oldSrcCompatObject);
+
+                if (oldCompatObject != IntPtr.Zero)
+                    SelectObject(compatDc, oldCompatObject);
+
                 if (sourceHdc != IntPtr.Zero)
                     ReleaseDC(IntPtr.Zero, sourceHdc);
 
                 if (srcCompatHdc != IntPtr.Zero)
-                    ReleaseDC(IntPtr.Zero, srcCompatHdc);
+                    DeleteDC(srcCompatHdc);
 
                 if (compatDc != IntPtr.Zero)
-                    ReleaseDC(IntPtr.Zero, compatDc);
+                    DeleteDC(compatDc);
 
                 if (destHdc != IntPtr.Zero)
                     ReleaseDC(IntPtr.Zero, destHdc);
@@ -207,7 +214,7 @@ internal static class OleDataObjectHelper
 
                     destHeader.Init();
 
-                    IntPtr hdc = IntPtr.Zero, compatDc = IntPtr.Zero, section = IntPtr.Zero;
+                    IntPtr hdc = IntPtr.Zero, compatDc = IntPtr.Zero, section = IntPtr.Zero, oldCompatObject = IntPtr.Zero;
                     try
                     {
                         hdc = GetDC(IntPtr.Zero);
@@ -224,7 +231,7 @@ internal static class OleDataObjectHelper
 
                         var extraSourceHeaderSize = GetExtraHeaderSize(sourceHeader);
 
-                        SelectObject(compatDc, section);
+                        oldCompatObject = SelectObject(compatDc, section);
                         if (StretchDIBits(compatDc,
                                 0,
                                 sourceHeader.biHeight - 1,
@@ -248,11 +255,14 @@ internal static class OleDataObjectHelper
                     }
                     finally
                     {
+                        if (oldCompatObject != IntPtr.Zero)
+                            SelectObject(compatDc, oldCompatObject);
+
                         if (section != IntPtr.Zero)
                             DeleteObject(section);
 
                         if (compatDc != IntPtr.Zero)
-                            ReleaseDC(IntPtr.Zero, compatDc);
+                            DeleteDC(compatDc);
 
                         if (hdc != IntPtr.Zero)
                             ReleaseDC(IntPtr.Zero, hdc);
@@ -532,6 +542,8 @@ internal static class OleDataObjectHelper
                     bitmap.CopyPixels(new PixelRect(pixelSize), (IntPtr)bytes, buffer.Length, stride);
 
                     IntPtr hdc = IntPtr.Zero, compatDc = IntPtr.Zero, desDc = IntPtr.Zero, hbitmap = IntPtr.Zero, section = IntPtr.Zero;
+                    IntPtr oldCompatObject = IntPtr.Zero, oldDesObject = IntPtr.Zero;
+                    var success = false;
                     try
                     {
                         hdc = GetDC(IntPtr.Zero);
@@ -568,38 +580,53 @@ internal static class OleDataObjectHelper
                         if (section == IntPtr.Zero)
                             return DV_E_FORMATETC;
 
-                        SelectObject(compatDc, section);
+                        oldCompatObject = SelectObject(compatDc, section);
 
                         Marshal.Copy(buffer, 0, lbBits, buffer.Length);
 
-                        hbitmap = CreateCompatibleBitmap(desDc, pixelSize.Width, pixelSize.Height);
+                        // Use the screen DC: a new memory DC has a 1x1 monochrome bitmap selected,
+                        // so a bitmap compatible with it would be monochrome.
+                        hbitmap = CreateCompatibleBitmap(hdc, pixelSize.Width, pixelSize.Height);
+                        if (hbitmap == IntPtr.Zero)
+                            return DV_E_FORMATETC;
 
-                        SelectObject(desDc, hbitmap);
+                        oldDesObject = SelectObject(desDc, hbitmap);
 
                         if (!BitBlt(desDc, 0, 0, pixelSize.Width, pixelSize.Height, compatDc, 0, 0, SRCCOPY))
                         {
                             return DV_E_FORMATETC;
                         }
 
-                        hGlobalBitmap = hbitmap;
-
                         GdiFlush();
 
+                        success = true;
                         return (uint)HRESULT.S_OK;
                     }
                     finally
                     {
-                        SelectObject(compatDc, IntPtr.Zero);
-                        SelectObject(desDc, IntPtr.Zero);
+                        // The bitmap must be deselected from our DC before it's handed to the receiver.
+                        if (oldDesObject != IntPtr.Zero)
+                            SelectObject(desDc, oldDesObject);
+
+                        if (oldCompatObject != IntPtr.Zero)
+                            SelectObject(compatDc, oldCompatObject);
 
                         if (desDc != IntPtr.Zero)
-                            ReleaseDC(IntPtr.Zero, desDc);
+                            DeleteDC(desDc);
 
                         if (compatDc != IntPtr.Zero)
-                            ReleaseDC(IntPtr.Zero, compatDc);
+                            DeleteDC(compatDc);
 
                         if (hdc != IntPtr.Zero)
                             ReleaseDC(IntPtr.Zero, hdc);
+
+                        if (section != IntPtr.Zero)
+                            DeleteObject(section);
+
+                        if (success)
+                            hGlobalBitmap = hbitmap;
+                        else if (hbitmap != IntPtr.Zero)
+                            DeleteObject(hbitmap);
                     }
                 }
             }
