@@ -49,7 +49,7 @@ jobs:
           script: |
             dotnet --info
             printenv
-            ./build.sh --target CiAzureLinux --configuration=Release
+            ./build.sh --target CiLinux --configuration=Release
 
       - task: PublishTestResults@2
         inputs:
@@ -112,7 +112,7 @@ jobs:
             which dotnet
             dotnet --info
             printenv
-            ./build.sh --target CiAzureOSX --configuration Release --skip-previewer
+            ./build.sh --target CiMacOS --configuration Release --skip-previewer
 
       - task: PublishTestResults@2
         inputs:
@@ -167,7 +167,7 @@ jobs:
         inputs:
           script: |
             set PATH=%PATH%;%USERPROFILE%\.dotnet\tools
-            nuke --target CiAzureWindows --configuration Release
+            nuke --target CiWindows --configuration Release
 
       - task: PublishTestResults@2
         inputs:
