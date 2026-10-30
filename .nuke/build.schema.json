@@ -38,6 +38,7 @@
         "GenerateUnicodeData",
         "InitDnx",
         "OutputApiDiff",
+        "OutputVersion",
         "Package",
         "RunCoreLibsTests",
         "RunHtmlPreviewerTests",

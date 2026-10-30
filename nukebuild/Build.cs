@@ -172,7 +172,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             var versionFile = Path.Combine(Parameters.VersionOutputDir, "version.txt");
-            var currentBuildVersion = Parameters.Version;
+            var currentBuildVersion = Parameters.Version + "-pixilonia";
             Console.WriteLine("Version is: " + currentBuildVersion);
             File.WriteAllText(versionFile, currentBuildVersion);
 
